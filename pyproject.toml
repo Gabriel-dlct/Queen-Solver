@@ -1,0 +1,26 @@
+[project]
+name = "linkedin"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "matplotlib>=3.10.7",
+]
+
+[tool.ruff]
+select = ["E", "F", "B", "I", "D", "UP", "ANN"]
+ignore = ["D203", "D213"]
+extend-select = ["D100", "D101", "D102", "D103"]
+line-length = 88
+src = ["src"]
+exclude = [".venv", "__pycache__", "migrations", "tests"]
+
+[tool.ruff.lint]
+fixable = ["I"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+ignore_missing_imports = true
+disallow_untyped_defs = true
