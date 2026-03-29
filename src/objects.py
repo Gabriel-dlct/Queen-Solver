@@ -2,6 +2,7 @@
 
 import secrets
 from enum import Enum
+import cv2
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -67,6 +68,7 @@ class Game:
         """Initialize the game."""
         self.size = size
         self.board = [[Square() for _ in range(size)] for _ in range(size)]
+        # self.colors = {}
 
     # Usable functions
 
@@ -143,20 +145,10 @@ class Game:
         for i, j in enumerate(queen_placement):
             self.update_queen((i, j))
 
-    def _solve_step(self, queen_placement: tuple[int]) -> tuple[int]:
-        """Backtrack the queen game."""
-        if not self.isvalid(queen_placement):
-            return None
-
-        if len(queen_placement) == self.size:
-            return queen_placement
-
-        for child in range(self.size):
-                if child not in queen_placement:
-                    result = self._solve_step(queen_placement + (child,))
-                    if result is not None:
-                        return result
-        return None
+    def optimized_solve_board(self):
+        queen_placement: tuple[int] = self._optimized_solve_step(())
+        for i, j in enumerate(queen_placement):
+            self.update_queen((i, j))
 
     def isvalid(self, queen_placement: tuple[int]) -> bool:
         """Check if a position is valid."""
@@ -175,6 +167,55 @@ class Game:
             return False
 
         return True
+
+    def queens_to_location(self) -> list:
+        pos = []
+        for i in range(self.size):
+            for j in range(self.size):
+                if self.board[i][j].state == State.QUEEN:
+                    pos.append(j)
+        return pos
+
+    def load_board_from_colors(self, color_matrix: np.ndarray) -> None:
+        assert color_matrix.shape[0] == self.size
+
+        cells = color_matrix[:, :, :3].astype(np.float32)
+        labels = -np.ones((self.size, self.size), dtype=int)
+        region_colors = {}
+        current_label = 0
+        threshold = 25  # distance euclidienne en espace 0-255
+
+        def similar(c1, c2):
+            return np.linalg.norm(c1 - c2) < threshold
+
+        for i in range(self.size):
+            for j in range(self.size):
+                if labels[i, j] != -1:
+                    continue
+                # BFS depuis cette cellule non labellisée
+                queue = [(i, j)]
+                labels[i, j] = current_label
+                region_pixels = [cells[i, j]]
+
+                while queue:
+                    ci, cj = queue.pop(0)
+                    for di, dj in [(-1,0),(1,0),(0,-1),(0,1)]:
+                        ni, nj = ci + di, cj + dj
+                        if 0 <= ni < self.size and 0 <= nj < self.size:
+                            if labels[ni, nj] == -1 and similar(cells[ni, nj], cells[i, j]):
+                                labels[ni, nj] = current_label
+                                region_pixels.append(cells[ni, nj])
+                                queue.append((ni, nj))
+
+                # Couleur moyenne de la région
+                region_colors[current_label] = np.mean(region_pixels, axis=0) / 255.0
+                current_label += 1
+
+        for i in range(self.size):
+            for j in range(self.size):
+                self.board[i][j].color = region_colors[labels[i, j]].tolist()
+                print(region_colors[labels[i, j]])
+                # self.colors[region_colors[labels[i, j]]] += 1
 
     # Construction functions.
 
@@ -196,6 +237,43 @@ class Game:
         ]
         secrets.SystemRandom().shuffle(neighbors)
         return neighbors
+
+
+
+    def _solve_step(self, queen_placement: tuple[int]) -> tuple[int]:
+        """Backtrack the queen game."""
+
+        if not self.isvalid(queen_placement):
+            return None
+
+        if len(queen_placement) == self.size:
+            return queen_placement
+
+        for child in range(self.size):
+                if child not in queen_placement:
+                    result = self._solve_step(queen_placement + (child,))
+                    if result is not None:
+                        return result
+        return None
+
+
+    def _optimized_solve_step(self, queen_placement: tuple[int]) -> tuple[int]:
+        """Backtrack the queen game."""
+        ### Check if there's only one case left for a color : put it there. So : initialise there
+        ### use the 3rd state
+        ### Save nb of case for each color then try to fit it up
+        if not self.isvalid(queen_placement):
+            return None
+
+        if len(queen_placement) == self.size:
+            return queen_placement
+
+        for child in range(self.size):
+                if child not in queen_placement:
+                    result = self._solve_step(queen_placement + (child,))
+                    if result is not None:
+                        return result
+        return None
 
     @staticmethod
     def _isneighbours(queen_placement: tuple[int]) -> bool:
