@@ -11,10 +11,7 @@ A challenging puzzle game where players must strategically place queens on a che
 This automated solver (v1.0) can:
 - Generate random queen puzzle configurations
 - Automatically solve the puzzle by calculating correct queen placements
-- Execute the solution by simulating clicks on the game board
-- Output two visualizations using Matplotlib:
-    - The first visualization shows the generated board configuration.
-    - The second visualization displays the board with the solution.
+- Solving all queen game in your screen and click quickly to solve it, by running button.py
     ## Quick Setup ⚡
 
     This project supports both `uv` package manager and manual setup for dependency management.
