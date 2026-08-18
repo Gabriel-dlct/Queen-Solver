@@ -20,13 +20,13 @@ This automated solver (v1.0) can:
 
     1. Create and activate the virtual environment:
     ```bash
-    uv init
     uv sync
     ```
 
     2. Run the solver:
     ```bash
-    uv run main.py <size>
+    source .venv/bin/activate
+    uv run src/button.py
     ```
 
     > **Note**: The board size parameter must be:
