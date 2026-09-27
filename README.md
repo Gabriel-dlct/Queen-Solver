@@ -2,62 +2,61 @@
 
 A challenging puzzle game where players must strategically place queens on a chessboard following specific rules:
 - One queen per column
-- One queen per row 
+- One queen per row
 - One queen per color
-- Queens cannot attack each other
+- Queens cannot touch each other (not even diagonally)
 
 ## About this Project
 
-This automated solver (v1.0) can:
-- Generate random queen puzzle configurations
-- Automatically solve the puzzle by calculating correct queen placements
-- Solving all queen game in your screen and click quickly to solve it, by running button.py
-    ## Quick Setup ⚡
+This automated solver (v2.0) solves the Queens game **directly on your screen**, in about a second:
 
-    This project supports both `uv` package manager and manual setup for dependency management.
+1. **Launch** – `button.py` opens a small window with a *"Lancer le solver"* button.
+2. **Capture** – clicking it runs `main.py`, which takes a screenshot of your main monitor.
+3. **Detect** – the board is located in the screenshot, its size (N×N) is detected, and the color of every cell is read.
+4. **Solve** – cells are grouped into color regions and a backtracking algorithm finds the queen placement.
+5. **Click** – the mouse automatically double-clicks each solution cell, so the puzzle is completed instantly.
 
-    ### Using `uv`
+The time spent on each step is printed in the terminal.
 
-    1. Create and activate the virtual environment:
-    ```bash
-    uv sync
-    ```
+## Quick Setup ⚡
 
-    2. Run the solver:
-    ```bash
-    source .venv/bin/activate
-    uv run src/button.py
-    ```
+> **Requirements**: Linux with an **X11** session (clicks are sent through `python-xlib`, Wayland is not supported) and Python ≥ 3.13.
 
-    > **Note**: The board size parameter must be:
-    > - Minimum: 4 (smaller boards have no valid solutions)
-    > - Recommended maximum: 20 (larger sizes may require significant computation time)
+### Using `uv`
 
-    ### Without `uv`
+1. Create the virtual environment and install dependencies:
+```bash
+uv sync
+```
 
-    If you prefer not to use the `uv` package manager, you can set up the project manually:
+2. Launch the solver window (from the project root):
+```bash
+uv run src/button.py
+```
 
-    1. Install the required dependencies:
-    ```bash
-    pip install -r requirements.txt
-    ```
+### Without `uv`
 
-    2. Run the solver:
-    ```bash
-    python main.py <size>
-    ```
+1. Install the required dependencies:
+```bash
+pip install -r requirements.txt
+```
 
-    > **Note**: The board size parameter must be:
-    > - Minimum: 4 (smaller boards have no valid solutions)
-    > - Recommended maximum: 20 (larger sizes may require significant computation time)
+2. Launch the solver window (from the project root):
+```bash
+python src/button.py
+```
+
+### Usage
+
+1. Open the Queens puzzle on your **main monitor**, with the whole board visible.
+2. Click **"Lancer le solver"**.
+3. Don't touch the mouse: the queens are placed automatically.
 
 ## Project Structure
 
-- `main.py`: Execute the script
-- `objects.py`: Create the classes to create and solve the game
-- `visualizations.py`: Generate and display the visualizations of the board configurations and solutions
-
-
-## Future of the Project
-
-The objective is to develop a script that can directly solve the queen puzzle and automatically click on the correct squares to complete it instantly. The next steps involve creating a detection script, a transformation script to integrate with the current solver, and a final script to perform the clicks in the appropriate locations.
+- `src/button.py`: Small Tkinter window with a button that launches the solver
+- `src/main.py`: Full pipeline: screenshot → detection → solving → clicking
+- `src/detector.py`: Finds the board in the screenshot, detects its size and reads cell colors (OpenCV)
+- `src/solver/objects.py`: `Game` class: loads the board from colors, solves it by backtracking, can also generate random puzzles and display them
+- `src/clicker.py`: Sends the mouse clicks on the solution cells (Xlib)
+- `src/test.py`: Debug script: detects the board and displays it without clicking
